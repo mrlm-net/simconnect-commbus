@@ -1,0 +1,55 @@
+/*
+ * A fixed frame size, the framework's wrappers forced to fill it: content-fit does
+ * not size a toolbar panel from its content in MSFS 2024 (it collapses to the
+ * title bar) — the same override GSX Pro's and the Dutch FlightSim Developer
+ * 13-4 example's CSS apply.
+ */
+ingame-ui#mrlm_commbus_probe {
+	display: flex;
+	flex-direction: column;
+	width: 420px !important;
+	height: 560px !important;
+	min-width: 360px !important;
+}
+ingame-ui#mrlm_commbus_probe .ingameUiContent,
+ingame-ui#mrlm_commbus_probe .ingameUiWrapper {
+	display: flex !important;
+	flex-direction: column !important;
+	width: 100% !important;
+	height: 100% !important;
+	min-height: 0 !important;
+	min-width: 0 !important;
+	overflow: hidden !important;
+	flex: 1 1 auto !important;
+}
+
+.probe {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px;
+	height: 100%;
+	overflow-y: auto;
+	color: #fff;
+	font-size: 16px;
+}
+.probe-input {
+	padding: 6px 8px;
+	font-size: 18px;
+	text-transform: uppercase;
+	color: #fff;
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.probe-status {
+	font-size: 14px;
+	opacity: 0.8;
+}
+.probe-out {
+	margin: 0;
+	padding: 8px;
+	font-size: 13px;
+	white-space: pre-wrap;
+	word-break: break-word;
+	background: rgba(0, 0, 0, 0.35);
+}

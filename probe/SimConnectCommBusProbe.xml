@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The METAR probe's project: open it in MSFS 2024 Developer Mode (File > Open
+     project...) and Build All In Project, before starting a flight. -->
+<Project Version="2" Name="SimConnectCommBusProbe" FolderName="Packages" MetadataFolderName="PackagesMetadata">
+	<OutputDirectory>.</OutputDirectory>
+	<TemporaryOutputDirectory>_PackageInt</TemporaryOutputDirectory>
+	<Packages>
+		<Package>PackageDefinitions\mrlm-simconnect-commbus-probe.xml</Package>
+	</Packages>
+</Project>

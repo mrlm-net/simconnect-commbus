@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="Cache-control" content="NO-CACHE" />
+		<link rel="stylesheet" href="/SCSS/common.css" />
+		<link rel="stylesheet" href="MrlmCommBusProbe.css" />
+		<script type="text/javascript" src="/JS/coherent.js"></script>
+		<script type="text/javascript" src="/JS/common.js"></script>
+		<script type="text/javascript" src="/JS/buttons.js"></script>
+		<script type="text/javascript" src="/JS/Services/ToolBarPanels.js"></script>
+		<link rel="import" href="/templates/NewPushButton/NewPushButton.html" />
+		<link rel="import" href="/templates/ingameUi/ingameUi.html" />
+		<link rel="import" href="/templates/ingameUiHeader/ingameUiHeader.html" />
+		<script type="text/javascript" src="MrlmCommBusProbe.js"></script>
+	</head>
+	<body class="border-box">
+		<ingamepanel-mrlm-commbus-probe>
+			<!-- panel-id matches the id in PackageSources\InGamePanels\mrlm_commbus_probe_panel.xml -->
+			<ingame-ui id="mrlm_commbus_probe" panel-id="PANEL_MRLM_COMMBUS_PROBE" title="METAR probe"
+				class="ingameUiFrame panelInvisible" auto-inside="" resize="both" data-input-group="INGAME-UI">
+				<div class="probe">
+					<label for="probe-icao">Airport (ICAO)</label>
+					<input type="text" id="probe-icao" class="probe-input" maxlength="4" placeholder="LKPD" />
+					<new-push-button id="probe-get" class="fullWidth small" onclick="onGetMetar(event);">Get METAR</new-push-button>
+					<div class="probe-status" id="probe-status">Registering the facility listener...</div>
+					<pre class="probe-out" id="probe-raw"></pre>
+					<pre class="probe-out" id="probe-decoded"></pre>
+				</div>
+			</ingame-ui>
+		</ingamepanel-mrlm-commbus-probe>
+	</body>
+</html>
