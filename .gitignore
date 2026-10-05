@@ -2,3 +2,4 @@
 Packages/
 PackagesMetadata/
 _PackageInt/
+*.xml.user

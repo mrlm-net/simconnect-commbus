@@ -1,4 +1,4 @@
-// Capability survey (mrlm-net/simconnect-commbus#2): what the simulator's JS
+// Capability survey (mrlm-net/simconnect-commbus#3): what the simulator's JS
 // can reach from a toolbar panel, tried live. Each test reports works / fails /
 // not available with a sample of what came back, so the MyCrew sim bridge can
 // pick what to carry over CommBus.

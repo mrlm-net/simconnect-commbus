@@ -25,7 +25,7 @@ Then restart MSFS (a toolbar panel is not reloaded into a running sim).
 
 ## What the sim's JS can reach (second tab)
 
-The survey tab ([#2](https://github.com/mrlm-net/simconnect-commbus/issues/2)) tries,
+The survey tab ([#3](https://github.com/mrlm-net/simconnect-commbus/issues/3)) tries,
 live, what a toolbar panel's JS can reach: the view listeners, the facility loader
 (METAR, airports, navaids), weather (ambient SimVars, presets), the sim's flight
 plan and ATC, SimVar / L:var / K: events, the jetway, ground services, the camera
