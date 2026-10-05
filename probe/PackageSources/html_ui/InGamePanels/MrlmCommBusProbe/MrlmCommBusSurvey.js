@@ -74,7 +74,8 @@ function coherent(listener, method, args) {
 	return withTimeout(listenerReady(listener), SURVEY_TIMEOUT_MS).then(() => Coherent.call.apply(Coherent, [method].concat(args || [])));
 }
 
-function simvar(name, unit) {
+// sv reads a SimVar (not "simvar": simvar.js has a global of that name).
+function sv(name, unit) {
 	return SimVar.GetSimVarValue(name, unit);
 }
 
@@ -92,51 +93,82 @@ LISTENERS.forEach((n) =>
 	)
 );
 
-// Facilities
+// facilityEvent calls method on the facility listener and waits for the
+// first of events with the data (LOAD_* answer true at once; the facility
+// comes on SendAirport / SendVor / ..., a nearest search on
+// NearestSearchCompleted — as the FlyByWire A32NX's FacilityLoader does).
+function facilityEvent(method, args, events) {
+	return withTimeout(listenerReady("JS_LISTENER_FACILITY"), SURVEY_TIMEOUT_MS).then(() => {
+		const view = listeners["JS_LISTENER_FACILITY"].view;
+		return withTimeout(
+			new Promise((resolve, reject) => {
+				let done = false;
+				events.forEach((ev) =>
+					view.on(ev, (data) => {
+						if (!done) {
+							done = true;
+							resolve({ event: ev, data: data });
+						}
+					})
+				);
+				Coherent.call.apply(Coherent, [method].concat(args)).then(
+					(r) => {
+						if (r === false) reject(new Error(method + " answered false"));
+					},
+					reject
+				);
+			}),
+			SURVEY_TIMEOUT_MS
+		);
+	});
+}
+
+// Facilities (the ICAO is fixed width: type, region 2, airport 4, ident 5)
 test("Facilities", "fac:metar", "GET_METAR_BY_IDENT LKPR", () => coherent("JS_LISTENER_FACILITY", "GET_METAR_BY_IDENT", ["LKPR"]));
-test("Facilities", "fac:airport", 'LOAD_AIRPORT "A      LKPR" (runways, frequencies, procedures)', () =>
-	coherent("JS_LISTENER_FACILITY", "LOAD_AIRPORT", ["A      LKPR"])
+test("Facilities", "fac:metarLatLon", "GET_METAR_BY_LATLON at the aircraft", () =>
+	coherent("JS_LISTENER_FACILITY", "GET_METAR_BY_LATLON", [sv("PLANE LATITUDE", "degrees"), sv("PLANE LONGITUDE", "degrees")])
 );
-test("Facilities", "fac:airport2", 'LOAD_AIRPORT "ALKPR"', () => coherent("JS_LISTENER_FACILITY", "LOAD_AIRPORT", ["ALKPR"]));
-test("Facilities", "fac:nearest", "GET_NEAREST_AIRPORTS / nearest search", () =>
-	coherent("JS_LISTENER_FACILITY", "START_NEAREST_SEARCH_SESSION", [0])
+test("Facilities", "fac:airport", 'LOAD_AIRPORT "A      LKPR " → SendAirport (runways, frequencies, procedures)', () =>
+	facilityEvent("LOAD_AIRPORT", ["A      LKPR "], ["SendAirport"])
 );
-test("Facilities", "fac:vor", 'LOAD_VOR "V LKVLM" (a navaid)', () => coherent("JS_LISTENER_FACILITY", "LOAD_VOR", ["VLK   VLM"]));
+test("Facilities", "fac:vor", 'LOAD_VOR "VLK    VLM  " (Vlasim) → SendVor', () => facilityEvent("LOAD_VOR", ["VLK    VLM  "], ["SendVor"]));
+test("Facilities", "fac:nearest", "Nearest airports (START_NEAREST_SEARCH_SESSION, SEARCH_NEAREST 50 km)", () =>
+	coherent("JS_LISTENER_FACILITY", "START_NEAREST_SEARCH_SESSION", [1]).then((session) =>
+		facilityEvent("SEARCH_NEAREST", [session, sv("PLANE LATITUDE", "degrees"), sv("PLANE LONGITUDE", "degrees"), 50000, 10], ["NearestSearchCompleted"])
+	)
+);
 
 // Weather
 test("Weather", "wx:ambient", "Ambient weather SimVars at the aircraft", () =>
 	Promise.resolve({
-		windDir: simvar("AMBIENT WIND DIRECTION", "degrees"),
-		windKts: simvar("AMBIENT WIND VELOCITY", "knots"),
-		visM: simvar("AMBIENT VISIBILITY", "meters"),
-		qnhMb: simvar("SEA LEVEL PRESSURE", "millibars"),
-		tempC: simvar("AMBIENT TEMPERATURE", "celsius"),
+		windDir: sv("AMBIENT WIND DIRECTION", "degrees"),
+		windKts: sv("AMBIENT WIND VELOCITY", "knots"),
+		visM: sv("AMBIENT VISIBILITY", "meters"),
+		qnhMb: sv("SEA LEVEL PRESSURE", "millibars"),
+		tempC: sv("AMBIENT TEMPERATURE", "celsius"),
 	})
 );
-test("Weather", "wx:presets", "Weather preset list (GET_WEATHER_PRESETS)", () => coherent("JS_LISTENER_WEATHER", "GET_WEATHER_PRESETS", []));
-test("Weather", "wx:current", "Current weather preset (GET_CURRENT_WEATHER)", () => coherent("JS_LISTENER_WEATHER", "GET_CURRENT_WEATHER", []));
-test("Weather", "wx:metarAt", "METAR at a point (GET_METAR_AT 50.1, 14.26)", () => coherent("JS_LISTENER_FACILITY", "GET_METAR_AT", [50.1, 14.26]));
 
 // Flight plan and ATC
 test("Flight plan / ATC", "fp:get", "GET_FLIGHTPLAN (the sim's flight plan)", () => coherent("JS_LISTENER_FLIGHTPLAN", "GET_FLIGHTPLAN", []));
-test("Flight plan / ATC", "fp:route", "GET_ROUTE (the sim's route)", () => coherent("JS_LISTENER_FLIGHTPLAN", "GET_ROUTE", []));
-test("Flight plan / ATC", "atc:state", "ATC_GET_STATE (the sim's ATC)", () => coherent("JS_LISTENER_ATC", "ATC_GET_STATE", []));
-test("Flight plan / ATC", "atc:simvars", "ATC SimVars (ATC ID, airline, flight, assigned runway)", () =>
+test("Flight plan / ATC", "fp:atc", "LOAD_CURRENT_ATC_FLIGHTPLAN, then GET_FLIGHTPLAN (the ATC's plan)", () =>
+	coherent("JS_LISTENER_FLIGHTPLAN", "LOAD_CURRENT_ATC_FLIGHTPLAN", []).then(() => coherent("JS_LISTENER_FLIGHTPLAN", "GET_FLIGHTPLAN", []))
+);
+test("Flight plan / ATC", "atc:simvars", "ATC SimVars (ATC ID, airline, flight number)", () =>
 	Promise.resolve({
-		atcId: simvar("ATC ID", "string"),
-		airline: simvar("ATC AIRLINE", "string"),
-		flight: simvar("ATC FLIGHT NUMBER", "string"),
-		runway: simvar("ATC RUNWAY SELECTED", "bool"),
+		atcId: sv("ATC ID", "string"),
+		airline: sv("ATC AIRLINE", "string"),
+		flight: sv("ATC FLIGHT NUMBER", "string"),
 	})
 );
 
 // SimVars, L:vars, events
 test("SimVars / events", "sv:get", "SimVar get (position, heading)", () =>
 	Promise.resolve({
-		lat: simvar("PLANE LATITUDE", "degrees"),
-		lon: simvar("PLANE LONGITUDE", "degrees"),
-		hdg: simvar("PLANE HEADING DEGREES TRUE", "degrees"),
-		onGround: simvar("SIM ON GROUND", "bool"),
+		lat: sv("PLANE LATITUDE", "degrees"),
+		lon: sv("PLANE LONGITUDE", "degrees"),
+		hdg: sv("PLANE HEADING DEGREES TRUE", "degrees"),
+		onGround: sv("SIM ON GROUND", "bool"),
 	})
 );
 test(
@@ -145,7 +177,7 @@ test(
 	"L:var set and read back (our own L:MRLM_PROBE_TEST)",
 	() => {
 		const v = Math.round(Math.random() * 1000);
-		return SimVar.SetSimVarValue("L:MRLM_PROBE_TEST", "number", v).then(() => ({ wrote: v, read: simvar("L:MRLM_PROBE_TEST", "number") }));
+		return SimVar.SetSimVarValue("L:MRLM_PROBE_TEST", "number", v).then(() => ({ wrote: v, read: sv("L:MRLM_PROBE_TEST", "number") }));
 	},
 	true
 );
@@ -153,7 +185,7 @@ test(
 	"SimVars / events",
 	"k:parking",
 	"K: event — K:PARKING_BRAKES toggles the parking brake",
-	() => SimVar.SetSimVarValue("K:PARKING_BRAKES", "number", 0).then(() => ({ brake: simvar("BRAKE PARKING POSITION", "bool") })),
+	() => SimVar.SetSimVarValue("K:PARKING_BRAKES", "number", 0).then(() => ({ brake: sv("BRAKE PARKING POSITION", "bool") })),
 	true
 );
 
@@ -173,7 +205,7 @@ test(
 	true
 );
 test("Not via SimConnect", "cam:state", "Camera SimVars (CAMERA STATE, view)", () =>
-	Promise.resolve({ state: simvar("CAMERA STATE", "number"), view: simvar("CAMERA VIEW TYPE AND INDEX:0", "number") })
+	Promise.resolve({ state: sv("CAMERA STATE", "number"), view: sv("CAMERA VIEW TYPE AND INDEX:0", "number") })
 );
 test("Not via SimConnect", "commbus", "CommBus listener (RegisterCommBusListener)", () =>
 	withTimeout(
