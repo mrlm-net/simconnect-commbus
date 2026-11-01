@@ -1,5 +1,7 @@
 # simconnect-commbus
 
+[![License: BSL 1.1 · non-commercial](https://img.shields.io/badge/license-BSL%201.1%20%C2%B7%20non--commercial-6c7480)](LICENSE)
+
 An add-on for Microsoft Flight Simulator 2024 that answers SimConnect programs
 with what only the simulator's own JavaScript can reach.
 
