@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<SimBase.Document Type="InGamePanels" version="1,0">
+	<Filename>mrlm_commbus_probe_panel.spb</Filename>
+	<InGamePanels.InGamePanelDefinition id="PANEL_MRLM_COMMBUS_PROBE" Name="METAR probe"
+		url="html_ui/InGamePanels/MrlmCommBusProbe/MrlmCommBusProbe.html" icon="MRLM_COMMBUS_PROBE"
+		minWidth="25" minHeight="30" defaultWidth="30" defaultHeight="40" defaultTop="20" defaultRight="2" resizeDirections="Both">
+		<minWidth>25</minWidth>
+		<minHeight>30</minHeight>
+		<defaultWidth>30</defaultWidth>
+		<defaultHeight>40</defaultHeight>
+		<defaultTop>20</defaultTop>
+		<defaultRight>2</defaultRight>
+		<resizeDirections>Both</resizeDirections>
+	</InGamePanels.InGamePanelDefinition>
+</SimBase.Document>

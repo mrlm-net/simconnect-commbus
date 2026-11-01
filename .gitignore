@@ -1,0 +1,5 @@
+# fspackagetool / Project Editor build output
+Packages/
+PackagesMetadata/
+_PackageInt/
+*.xml.user

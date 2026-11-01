@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="Cache-control" content="NO-CACHE" />
+		<link rel="stylesheet" href="/SCSS/common.css" />
+		<link rel="stylesheet" href="MrlmCommBusProbe.css" />
+		<script type="text/javascript" src="/JS/coherent.js"></script>
+		<script type="text/javascript" src="/JS/common.js"></script>
+		<script type="text/javascript" src="/JS/simvar.js"></script>
+		<script type="text/javascript" src="/JS/buttons.js"></script>
+		<script type="text/javascript" src="/JS/Services/ToolBarPanels.js"></script>
+		<link rel="import" href="/templates/NewPushButton/NewPushButton.html" />
+		<link rel="import" href="/templates/ingameUi/ingameUi.html" />
+		<link rel="import" href="/templates/ingameUiHeader/ingameUiHeader.html" />
+		<script type="text/javascript" src="MrlmCommBusSurvey.js"></script>
+		<script type="text/javascript" src="MrlmCommBusProbe.js"></script>
+	</head>
+	<body class="border-box">
+		<ingamepanel-mrlm-commbus-probe>
+			<!-- panel-id matches the id in PackageSources\InGamePanels\mrlm_commbus_probe_panel.xml -->
+			<ingame-ui id="mrlm_commbus_probe" panel-id="PANEL_MRLM_COMMBUS_PROBE" title="CommBus probe"
+				class="ingameUiFrame panelInvisible" auto-inside="" resize="both" data-input-group="INGAME-UI">
+				<div class="tabs">
+					<button class="tab" onclick="showTab('metar')">METAR</button>
+					<button class="tab" onclick="showTab('survey')">What the sim's JS can reach</button>
+				</div>
+				<div class="probe" id="tab-metar">
+					<label for="probe-icao">Airport (ICAO)</label>
+					<input type="text" id="probe-icao" class="probe-input" maxlength="4" placeholder="LKPD" />
+					<new-push-button id="probe-get" class="fullWidth small" onclick="onGetMetar(event);">Get METAR</new-push-button>
+					<div class="probe-status" id="probe-status">Registering the facility listener...</div>
+					<pre class="probe-out" id="probe-raw"></pre>
+					<pre class="probe-out" id="probe-decoded"></pre>
+				</div>
+				<div class="probe survey" id="tab-survey" style="display: none">
+					<p class="survey-note">Each line is tried live: works, fails or not available, with what came back. "Try (changes the sim)" lines run only on their button.</p>
+					<new-push-button class="fullWidth small" onclick="runReadOnly();">Run the read-only tests</new-push-button>
+					<div id="survey-table"></div>
+					<div class="t-group">Any Coherent call</div>
+					<input type="text" id="custom-listener" class="probe-input" value="JS_LISTENER_FACILITY" />
+					<input type="text" id="custom-method" class="probe-input" placeholder="call name, e.g. GET_METAR_BY_IDENT" />
+					<input type="text" id="custom-args" class="probe-input" placeholder='arguments as JSON, e.g. ["LKPR"]' />
+					<new-push-button class="fullWidth small" onclick="runCustom();">Call</new-push-button>
+					<pre class="probe-out" id="custom-out"></pre>
+					<div class="t-group">Report (select all, copy, paste to Claude)</div>
+					<textarea id="survey-report" class="survey-report" readonly></textarea>
+				</div>
+			</ingame-ui>
+		</ingamepanel-mrlm-commbus-probe>
+	</body>
+</html>
